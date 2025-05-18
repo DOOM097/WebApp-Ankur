@@ -1,239 +1,136 @@
+// глобальная карта ID → название
+let MENU_MAP = {};
+
 document.addEventListener('DOMContentLoaded', () => {
-  // --- Элементы интерфейса ---
+  // загрузим меню сразу при старте
+  initMenuMap().then(() => {
+    setupOrderHandlers();
+    loadCurrentOrders();
+  });
+});
+
+async function initMenuMap() {
+  try {
+    const res = await fetch('/api/menu');
+    const menu = await res.json();
+    MENU_MAP = menu.reduce((map, item) => {
+      map[item.id] = item.name;
+      return map;
+    }, {});
+  } catch (e) {
+    console.error('Не удалось загрузить карту меню', e);
+  }
+}
+
+function setupOrderHandlers() {
   const btnNewOrder = document.getElementById('btn-new-order');
   const orderFormContainer = document.getElementById('order-form-container');
-  const menuItemsList = document.getElementById('menu-items-list');
   const orderForm = document.getElementById('order-form');
   const cancelOrderBtn = document.getElementById('cancel-order');
-  const currentOrdersList = document.getElementById('current-orders-list');
 
-  const btnNewReservation = document.getElementById('btn-new-reservation');
-  const reservationFormContainer = document.getElementById('reservation-form-container');
-  const reservationForm = document.getElementById('reservation-form');
-  const cancelReservationBtn = document.getElementById('cancel-reservation');
-  const reservationsList = document.getElementById('reservations-list');
-
-  const btnAddMenuItem = document.getElementById('btn-add-menu-item');
-  const menuItemFormContainer = document.getElementById('menu-item-form-container');
-  const menuItemForm = document.getElementById('menu-item-form');
-  const cancelMenuItemBtn = document.getElementById('cancel-menu-item');
-
-  // --- Заказы ---
   btnNewOrder.onclick = () => {
     orderFormContainer.style.display = 'block';
     loadMenuItems();
   };
-
   cancelOrderBtn.onclick = () => {
     orderFormContainer.style.display = 'none';
-    menuItemsList.innerHTML = '';
+    orderForm.reset();
   };
-
-  orderForm.addEventListener('submit', e => {
+  orderForm.onsubmit = async e => {
     e.preventDefault();
-
-    const selected = [...orderForm.querySelectorAll('input[name="menuItems"]:checked')].map(chk => Number(chk.value));
-
-    if (selected.length === 0) {
-      alert('Выберите хотя бы один пункт меню');
+    const selected = Array.from(orderForm.querySelectorAll('input[name="menuItems"]:checked'))
+                           .map(chk => Number(chk.value));
+    if (!selected.length) {
+      alert('Выберите хотя бы одну позицию');
       return;
     }
-
-    fetch('/api/orders', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ items: selected })
-    })
-      .then(res => res.json())
-      .then(() => {
-        alert('Заказ создан');
-        orderFormContainer.style.display = 'none';
-        menuItemsList.innerHTML = '';
-        loadCurrentOrders();
-      });
-  });
-
-  function loadMenuItems() {
-    fetch('/api/menu')
-      .then(res => res.json())
-      .then(menu => {
-        menuItemsList.innerHTML = '';
-        menu.forEach(item => {
-          const div = document.createElement('div');
-          div.classList.add('d-flex', 'justify-content-between', 'align-items-center', 'mb-1');
-          div.innerHTML = `
-            <div>
-              <input type="checkbox" id="menu-item-${item.id}" value="${item.id}" name="menuItems" />
-              <label for="menu-item-${item.id}">${item.name} — ${item.price} €</label>
-            </div>
-            <button class="btn btn-danger btn-sm" onclick="deleteMenuItem(${item.id})">Удалить</button>
-          `;
-          menuItemsList.appendChild(div);
-        });
-      });
-  }
-
-  function loadCurrentOrders() {
-    fetch('/api/orders?status=Готовится')
-      .then(res => res.json())
-      .then(orders => {
-        currentOrdersList.innerHTML = '';
-        if (orders.length === 0) {
-          currentOrdersList.textContent = 'Нет текущих заказов';
-          return;
-        }
-        orders.forEach(order => {
-          const div = document.createElement('div');
-          div.textContent = `Заказ #${order.id}, Статус: ${order.status}`;
-          currentOrdersList.appendChild(div);
-        });
-      });
-  }
-
-  loadCurrentOrders();
-
-  // --- Бронирования ---
-  btnNewReservation.onclick = () => {
-    reservationFormContainer.style.display = 'block';
-  };
-
-  cancelReservationBtn.onclick = () => {
-    reservationFormContainer.style.display = 'none';
-    reservationForm.reset();
-  };
-
-  reservationForm.addEventListener('submit', e => {
-    e.preventDefault();
-
-    const data = {
-      first_name: reservationForm.first_name.value.trim(),
-      last_name: reservationForm.last_name.value.trim(),
-      email: reservationForm.email.value.trim(),
-      people_count: Number(reservationForm.people_count.value),
-      table_number: Number(reservationForm.table_number.value),
-      reservation_time: reservationForm.reservation_time.value,
-      notes: reservationForm.notes.value.trim()
-    };
-
-    fetch('/api/reservations', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data)
-    })
-      .then(res => res.json())
-      .then(() => {
-        alert('Бронирование создано');
-        reservationFormContainer.style.display = 'none';
-        reservationForm.reset();
-        loadReservations();
-      });
-  });
-
-  function loadReservations() {
-    fetch('/api/reservations')
-      .then(res => res.json())
-      .then(data => {
-        reservationsList.innerHTML = '';
-        if (data.length === 0) {
-          reservationsList.textContent = 'Нет бронирований';
-          return;
-        }
-        data.forEach(r => {
-          const div = document.createElement('div');
-          div.classList.add('border', 'p-2', 'mb-2', 'rounded');
-          div.innerHTML = `
-            <strong>${r.first_name} ${r.last_name}</strong> — столик ${r.table_number}<br/>
-            Время: ${new Date(r.reservation_time).toLocaleString()}<br/>
-            Людей: ${r.people_count}<br/>
-            Почта: ${r.email}<br/>
-            ${r.notes ? `Дополнительно: ${r.notes}` : ''}
-            <br/>
-            <button class="btn btn-danger btn-sm mt-2" data-id="${r.id}">Удалить</button>
-          `;
-          reservationsList.appendChild(div);
-
-          div.querySelector('button').onclick = () => {
-            if (confirm('Вы точно хотите удалить это бронирование?')) {
-              fetch(`/api/reservations/${r.id}`, { method: 'DELETE' })
-                .then(res => {
-                  if (!res.ok) throw new Error('Ошибка при удалении');
-                  loadReservations();
-                })
-                .catch(err => alert(err.message));
-            }
-          };
-        });
-      });
-  }
-
-  loadReservations();
-
-  // --- Добавление позиции меню ---
-  if (btnAddMenuItem) {
-    btnAddMenuItem.onclick = () => {
-      menuItemFormContainer.style.display = 'block';
-    };
-  }
-
-  if (cancelMenuItemBtn) {
-    cancelMenuItemBtn.onclick = () => {
-      menuItemFormContainer.style.display = 'none';
-      menuItemForm.reset();
-    };
-  }
-
-  if (menuItemForm) {
-    menuItemForm.addEventListener('submit', e => {
-      e.preventDefault();
-
-      const formData = new FormData(menuItemForm);
-      const data = {
-        name: formData.get('name').trim(),
-        price: parseFloat(formData.get('price')),
-        description: formData.get('description').trim(),
-        weight: formData.get('weight') ? parseInt(formData.get('weight')) : null,
-      };
-
-      fetch('/api/menu', {
+    try {
+      const res = await fetch('/api/orders', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      })
-        .then(res => {
-          if (!res.ok) throw new Error('Ошибка при добавлении позиции меню');
-          return res.json();
-        })
-        .then(() => {
-          alert('Позиция меню добавлена');
-          menuItemFormContainer.style.display = 'none';
-          menuItemForm.reset();
-          loadMenuItems();
-        })
-        .catch(err => alert(err.message));
-    });
-  }
-});
-
-// --- Вне DOMContentLoaded ---
-// Это важно: deleteMenuItem должна быть глобальной
-function deleteMenuItem(id) {
-  if (!confirm("Удалить эту позицию?")) return;
-
-  fetch(`/api/menu/${id}`, {
-    method: 'DELETE',
-  })
-    .then(response => {
-      if (!response.ok) {
-        throw new Error("Ошибка удаления");
-      }
-      return response.json();
-    })
-    .then(() => {
-      alert("Позиция удалена");
-      location.reload(); // Обновить страницу после удаления
-    })
-    .catch(error => {
-      console.error("Ошибка при удалении:", error);
-      alert("Не удалось удалить позицию");
-    });
+        headers: {'Content-Type':'application/json'},
+        body: JSON.stringify({ items: selected })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      alert('Заказ создан, ID: ' + data.orderId);
+      orderFormContainer.style.display = 'none';
+      orderForm.reset();
+      loadCurrentOrders();
+    } catch (err) {
+      alert('Ошибка: ' + err.message);
+    }
+  };
 }
+
+async function loadMenuItems() {
+  const list = document.getElementById('menu-items-list');
+  list.innerHTML = '';
+  // можно использовать MENU_MAP для подписей
+  for (const id in MENU_MAP) {
+    const div = document.createElement('div');
+    div.innerHTML = `
+      <label>
+        <input type="checkbox" name="menuItems" value="${id}">
+        ${MENU_MAP[id]}
+      </label>
+    `;
+    list.appendChild(div);
+  }
+}
+
+async function loadCurrentOrders() {
+  const container = document.getElementById('current-orders-list');
+  container.innerHTML = '';
+  try {
+    const res = await fetch('/api/orders');
+    const orders = await res.json();
+    if (!orders.length) {
+      container.textContent = 'Нет текущих заказов';
+      return;
+    }
+    orders.forEach(order => {
+      const div = document.createElement('div');
+      div.className = 'border p-2 mb-2 rounded';
+      let itemsHtml = '';
+      try {
+        const ids = JSON.parse(order.items);
+        // заменяем каждый ID на название из MENU_MAP
+        itemsHtml = ids.map(id => `<li>${MENU_MAP[id] || '—'}</li>`).join('');
+      } catch {
+        itemsHtml = '<li>Ошибка разбора</li>';
+      }
+      div.innerHTML = `
+        <strong>Заказ #${order.id}</strong>
+        <ul>${itemsHtml}</ul>
+        <div>
+          Статус: <span id="status-${order.id}">${order.status}</span>
+          <button onclick="toggleStatus(${order.id})">Сменить</button>
+          <button onclick="deleteOrder(${order.id})">Удалить</button>
+        </div>
+      `;
+      container.appendChild(div);
+    });
+  } catch (e) {
+    console.error('Ошибка загрузки заказов', e);
+  }
+}
+
+// глобальные функции для кнопок
+window.toggleStatus = async function(id) {
+  const span = document.getElementById(`status-${id}`);
+  const newStatus = span.textContent === 'Готовится' ? 'Забрали' : 'Готовится';
+  const res = await fetch(`/api/orders/${id}`, {
+    method: 'PATCH',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({ status: newStatus })
+  });
+  if (res.ok) span.textContent = newStatus;
+  else alert('Не удалось сменить статус');
+};
+
+window.deleteOrder = async function(id) {
+  if (!confirm('Удалить этот заказ?')) return;
+  const res = await fetch(`/api/orders/${id}`, { method: 'DELETE' });
+  if (res.ok) loadCurrentOrders();
+  else alert('Не удалось удалить заказ');
+};

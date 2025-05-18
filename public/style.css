@@ -1,48 +1,106 @@
-body {
-  background: #f8f9fa;
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
+/* --------------------------------------- */
+/* ПЕРЕОПРЕДЕЛЕНИЕ СТИЛЯ КНОПОК           */
+/* --------------------------------------- */
 
-h3 {
-  border-bottom: 2px solid #6c757d;
-  padding-bottom: 5px;
-  margin-bottom: 15px;
-}
-
-#current-orders, #reservations, #order-history {
-  max-height: 400px;
-  overflow-y: auto;
-  background: white;
-  border: 1px solid #ddd;
-  padding: 10px;
-  border-radius: 5px;
-}
-.order-section {
-  max-width: 500px;
-  margin: 20px auto;
-  padding: 15px;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  background: #fff;
-}
-
-.menu-item {
-  margin-bottom: 10px;
-}
-
-.order-message {
-  margin-top: 10px;
+/* Базовый стиль */
+.btn {
+  display: inline-block;
+  font-family: inherit;
+  font-size: 1rem;
   font-weight: 600;
+  padding: 0.6em 1.4em;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 
+    background-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.1s ease,
+    box-shadow 0.2s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
-#current-orders-section {
-  max-width: 600px;
-  margin: 30px auto;
+/* Всплывающий эффект при наведении и нажатии */
+.btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+}
+.btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
-.order-item {
-  background: #f0f0f0;
-  padding: 8px 12px;
-  border-radius: 5px;
-  margin-bottom: 8px;
+/* Основная кнопка */
+.btn-primary {
+  background-color: #007bff;
+  color: #fff;
+}
+.btn-primary:hover {
+  background-color: #006ae6;
+}
+
+/* Успех / подтверждение */
+.btn-success {
+  background-color: #28a745;
+  color: #fff;
+}
+.btn-success:hover {
+  background-color: #218f3f;
+}
+
+/* Опасная / удаление */
+.btn-danger {
+  background-color: #dc3545;
+  color: #fff;
+}
+.btn-danger:hover {
+  background-color: #c82333;
+}
+
+/* Вторичная */
+.btn-secondary {
+  background-color: #6c757d;
+  color: #fff;
+}
+.btn-secondary:hover {
+  background-color: #5a6268;
+}
+
+/* Малые кнопки */
+.btn-sm {
+  padding: 0.4em 0.9em;
+  font-size: 0.875rem;
+}
+
+/* Круглая плавающая кнопка (FAB) */
+#fab {
+  width: 60px;
+  height: 60px;
+  background-color: #17a2b8;
+  color: white;
+  border-radius: 50%;
+  font-size: 32px;
+  box-shadow: 0 4px 14px rgba(23, 162, 184, 0.4);
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+#fab:hover {
+  background-color: #138496;
+  transform: translateY(-2px);
+}
+#fab:active {
+  transform: translateY(0);
+}
+
+/* Закрывающая кнопка панели */
+.btn-close {
+  font-size: 1.2rem;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  line-height: 1;
+  background: none;
+  color: #333;
+}
+.btn-close:hover {
+  color: #000;
 }
