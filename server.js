@@ -11,7 +11,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
-// Главная страница — загрузка меню и заказов
+// Главная страница — загрузка меню, заказов, бронирований
 app.get('/', (req, res) => {
   db.all(`SELECT * FROM menu_items`, (err, menuItems) => {
     if (err) return res.status(500).send(err.message);
@@ -47,16 +47,30 @@ app.get('/api/menu', (req, res) => {
 
 // API: Создать заказ
 app.post('/api/orders', (req, res) => {
-  const items = JSON.stringify(req.body.items || []);
-  const status = 'Готовится';
+  const items = req.body.items;
+  if (!items || !Array.isArray(items) || items.length === 0) {
+    return res.status(400).json({ error: 'Нужно указать список выбранных пунктов меню' });
+  }
 
-  db.run(`INSERT INTO orders (items, status) VALUES (?, ?)`, [items, status], function(err) {
+  // Проверяем, что все id есть в меню
+  db.all(`SELECT id FROM menu_items WHERE id IN (${items.map(() => '?').join(',')})`, items, (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
-    res.json({ id: this.lastID });
+
+    if (rows.length !== items.length) {
+      return res.status(400).json({ error: 'Один или несколько пунктов меню не найдены' });
+    }
+
+    const itemsStr = JSON.stringify(items);
+    const status = 'Готовится';
+
+    db.run(`INSERT INTO orders (items, status) VALUES (?, ?)`, [itemsStr, status], function(err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.status(201).json({ message: 'Заказ создан', orderId: this.lastID });
+    });
   });
 });
 
-// API: Получить заказы с фильтром по статусу (опционально)
+// API: Получить заказы с фильтром по статусу
 app.get('/api/orders', (req, res) => {
   const status = req.query.status;
   let sql = 'SELECT * FROM orders';
@@ -98,13 +112,13 @@ app.post('/api/reservations', (req, res) => {
 // API: Удалить бронирование по id
 app.delete('/api/reservations/:id', (req, res) => {
   const id = req.params.id;
-  console.log('Удаление бронирования с id:', id);
   db.run('DELETE FROM reservations WHERE id = ?', [id], function(err) {
     if (err) return res.status(500).json({ error: err.message });
     if (this.changes === 0) return res.status(404).json({ error: 'Бронирование не найдено' });
     res.json({ message: 'Бронирование удалено' });
   });
 });
+
 // API: Добавить позицию меню
 app.post('/api/menu', (req, res) => {
   const { name, price, description, weight } = req.body;
@@ -114,10 +128,8 @@ app.post('/api/menu', (req, res) => {
     res.json({ id: this.lastID });
   });
 });
-// Страница добавления позиции в меню
-app.get('/add-menu-item', (req, res) => {
-  res.render('add-menu-item'); // создашь этот файл в папке views
-});
+
+// API: Удалить позицию меню
 app.delete('/api/menu/:id', (req, res) => {
   const id = req.params.id;
   db.run(`DELETE FROM menu_items WHERE id = ?`, [id], function(err) {
@@ -126,8 +138,7 @@ app.delete('/api/menu/:id', (req, res) => {
   });
 });
 
-
-// Запуск сервера и открытие браузера с динамическим импортом open
+// Запуск сервера и открытие браузера
 (async () => {
   const open = (await import('open')).default;
 

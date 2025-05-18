@@ -64,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
           div.innerHTML = `
             <div>
               <input type="checkbox" id="menu-item-${item.id}" value="${item.id}" name="menuItems" />
-              <label for="menu-item-${item.id}">${item.name} — ${item.price} ₽</label>
+              <label for="menu-item-${item.id}">${item.name} — ${item.price} €</label>
             </div>
             <button class="btn btn-danger btn-sm" onclick="deleteMenuItem(${item.id})">Удалить</button>
           `;

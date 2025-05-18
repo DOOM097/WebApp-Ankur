@@ -4,7 +4,6 @@ const path = require('path');
 const db = new sqlite3.Database(path.join(__dirname, 'restaurant.db'), err => {
   if (err) return console.error('Ошибка открытия базы:', err.message);
 
-  // Создаем таблицу menu_items, если не существует
   db.run(`
     CREATE TABLE IF NOT EXISTS menu_items (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -15,7 +14,6 @@ const db = new sqlite3.Database(path.join(__dirname, 'restaurant.db'), err => {
     )
   `);
 
-  // Создаем таблицу orders, если не существует
   db.run(`
     CREATE TABLE IF NOT EXISTS orders (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -24,7 +22,6 @@ const db = new sqlite3.Database(path.join(__dirname, 'restaurant.db'), err => {
     )
   `);
 
-  // Создаем таблицу reservations, если не существует, с колонкой notes
   db.run(`
     CREATE TABLE IF NOT EXISTS reservations (
       id INTEGER PRIMARY KEY AUTOINCREMENT,

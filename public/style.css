@@ -17,3 +17,32 @@ h3 {
   padding: 10px;
   border-radius: 5px;
 }
+.order-section {
+  max-width: 500px;
+  margin: 20px auto;
+  padding: 15px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.menu-item {
+  margin-bottom: 10px;
+}
+
+.order-message {
+  margin-top: 10px;
+  font-weight: 600;
+}
+
+#current-orders-section {
+  max-width: 600px;
+  margin: 30px auto;
+}
+
+.order-item {
+  background: #f0f0f0;
+  padding: 8px 12px;
+  border-radius: 5px;
+  margin-bottom: 8px;
+}
