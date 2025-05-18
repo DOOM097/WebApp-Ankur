@@ -1,0 +1,48 @@
+const express = require('express');
+const router = express.Router();
+const db = require('../db/database');
+
+// Добавить бронирование
+router.post('/reservations', (req, res) => {
+  const { first_name, last_name, email, people_count, table_number, reservation_time, notes } = req.body;
+
+  const sql = `INSERT INTO reservations 
+    (first_name, last_name, email, people_count, table_number, reservation_time, notes) 
+    VALUES (?, ?, ?, ?, ?, ?, ?)`;
+
+  db.run(sql, [first_name, last_name, email, people_count, table_number, reservation_time, notes], function(err) {
+    if (err) {
+      console.error('Ошибка при добавлении бронирования:', err);
+      return res.status(500).json({ error: 'Ошибка сервера' });
+    }
+    res.json({ id: this.lastID });
+  });
+});
+
+// Получить все бронирования
+router.get('/reservations', (req, res) => {
+  db.all('SELECT * FROM reservations ORDER BY reservation_time DESC', [], (err, rows) => {
+    if (err) {
+      console.error('Ошибка при загрузке бронирований:', err);
+      return res.status(500).json({ error: 'Ошибка сервера' });
+    }
+    res.json(rows);
+  });
+});
+router.delete('/reservations/:id', (req, res) => {
+  const id = req.params.id;
+  const sql = 'DELETE FROM reservations WHERE id = ?';
+  db.run(sql, [id], function(err) {
+    if (err) {
+      console.error('Ошибка при удалении бронирования:', err);
+      return res.status(500).json({ error: 'Ошибка сервера' });
+    }
+    if (this.changes === 0) {
+      return res.status(404).json({ error: 'Бронирование не найдено' });
+    }
+    res.json({ message: 'Бронирование удалено' });
+  });
+});
+
+
+module.exports = router;

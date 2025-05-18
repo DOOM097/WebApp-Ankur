@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Добавить позицию в меню</title>
+</head>
+<body>
+  <h2>Добавление позиции в меню</h2>
+  <form id="menu-item-form">
+    <label>Название: <input type="text" name="name" required></label><br><br>
+    <label>Цена: <input type="number" name="price" required step="0.01"></label><br><br>
+    <label>Описание: <textarea name="description"></textarea></label><br><br>
+    <label>Вес (г): <input type="number" name="weight" step="1"></label><br><br>
+    <button type="submit">Сохранить</button>
+    <a href="/">Назад</a>
+  </form>
+
+  <script>
+    const form = document.getElementById('menu-item-form');
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const data = {
+        name: form.name.value.trim(),
+        price: parseFloat(form.price.value),
+        description: form.description.value.trim(),
+        weight: form.weight.value ? parseInt(form.weight.value) : null
+      };
+
+      const response = await fetch('/api/menu', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+
+      if (response.ok) {
+        alert('Добавлено!');
+        window.location.href = '/'; // Возврат на главную
+      } else {
+        const { error } = await response.json();
+        alert('Ошибка: ' + error);
+      }
+    });
+  </script>
+</body>
+</html>
