@@ -1,106 +1,63 @@
-/* --------------------------------------- */
-/* ПЕРЕОПРЕДЕЛЕНИЕ СТИЛЯ КНОПОК           */
-/* --------------------------------------- */
-
-/* Базовый стиль */
-.btn {
-  display: inline-block;
-  font-family: inherit;
-  font-size: 1rem;
-  font-weight: 600;
-  padding: 0.6em 1.4em;
-  border: none;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: 
-    background-color 0.2s ease,
-    color 0.2s ease,
-    transform 0.1s ease,
-    box-shadow 0.2s ease;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+body {
+  background: #f8f9fa;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* Всплывающий эффект при наведении и нажатии */
-.btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
-}
-.btn:active {
-  transform: translateY(0);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+h3 {
+  border-bottom: 2px solid #6c757d;
+  padding-bottom: 5px;
+  margin-bottom: 15px;
 }
 
-/* Основная кнопка */
-.btn-primary {
-  background-color: #007bff;
-  color: #fff;
-}
-.btn-primary:hover {
-  background-color: #006ae6;
+.menu-item, .order-item {
+  background: #fff;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 10px;
 }
 
-/* Успех / подтверждение */
-.btn-success {
-  background-color: #28a745;
-  color: #fff;
-}
-.btn-success:hover {
-  background-color: #218f3f;
-}
-
-/* Опасная / удаление */
-.btn-danger {
-  background-color: #dc3545;
-  color: #fff;
-}
-.btn-danger:hover {
-  background-color: #c82333;
-}
-
-/* Вторичная */
-.btn-secondary {
-  background-color: #6c757d;
-  color: #fff;
-}
-.btn-secondary:hover {
-  background-color: #5a6268;
-}
-
-/* Малые кнопки */
-.btn-sm {
-  padding: 0.4em 0.9em;
-  font-size: 0.875rem;
-}
-
-/* Круглая плавающая кнопка (FAB) */
+/* FAB */
 #fab {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
   width: 60px;
   height: 60px;
-  background-color: #17a2b8;
-  color: white;
-  border-radius: 50%;
+  background: #17a2b8;
+  color: #fff;
   font-size: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  cursor: pointer;
   box-shadow: 0 4px 14px rgba(23, 162, 184, 0.4);
-  transition: background-color 0.2s ease, transform 0.1s ease;
+  transition: background-color 0.2s, transform 0.1s;
 }
 #fab:hover {
-  background-color: #138496;
+  background: #138496;
   transform: translateY(-2px);
 }
 #fab:active {
   transform: translateY(0);
 }
 
-/* Закрывающая кнопка панели */
-.btn-close {
-  font-size: 1.2rem;
-  width: 36px;
-  height: 36px;
-  padding: 0;
-  line-height: 1;
-  background: none;
-  color: #333;
+/* Панель меню */
+#menu-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 300px;
+  height: 100%;
+  background: #fff;
+  box-shadow: -2px 0 8px rgba(0,0,0,0.2);
+  padding: 20px;
+  display: none;
+  overflow-y: auto;
+  z-index: 1000;
 }
-.btn-close:hover {
-  color: #000;
+
+/* Кнопки */
+.btn {
+  border-radius: 6px;
 }

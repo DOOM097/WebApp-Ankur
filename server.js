@@ -8,12 +8,11 @@ const PORT = 3000;
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Статика
 app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Главная
+// Главная страница
 app.get('/', (req, res) => {
   db.all(`SELECT * FROM menu_items`, (e1, menuItems) => {
     if (e1) return res.status(500).send(e1.message);
@@ -71,46 +70,21 @@ app.get('/api/orders', (req, res) => {
 });
 app.post('/api/orders', (req, res) => {
   const items = req.body.items;
-  if (!Array.isArray(items) || items.length === 0) {
-    return res.status(400).json({ error: 'Нужно выбрать пункты меню' });
-  }
-  const placeholders = items.map(() => '?').join(',');
-  db.all(
-    `SELECT id FROM menu_items WHERE id IN (${placeholders})`,
-    items,
-    (err, rows) => {
+  db.run(
+    `INSERT INTO orders (items, status) VALUES (?, 'Готовится')`,
+    [JSON.stringify(items)],
+    function(err) {
       if (err) return res.status(500).json({ error: err.message });
-      if (rows.length !== items.length) {
-        return res.status(400).json({ error: 'Некорректные пункты меню' });
-      }
-      db.run(
-        `INSERT INTO orders (items, status) VALUES (?, ?)`,
-        [JSON.stringify(items), 'Готовится'],
-        function(err) {
-          if (err) return res.status(500).json({ error: err.message });
-          res.status(201).json({ orderId: this.lastID });
-        }
-      );
+      res.json({ orderId: this.lastID });
     }
   );
 });
 app.patch('/api/orders/:id', (req, res) => {
   const { status } = req.body;
-  db.run(
-    `UPDATE orders SET status = ? WHERE id = ?`,
-    [status, req.params.id],
-    function(err) {
-      if (err) return res.status(500).json({ error: err.message });
-      if (this.changes === 0) return res.status(404).json({ error: 'Заказ не найден' });
-      res.json({ message: 'Статус изменён' });
-    }
-  );
-});
-app.delete('/api/orders/:id', (req, res) => {
-  db.run(`DELETE FROM orders WHERE id = ?`, [req.params.id], function(err) {
+  db.run(`UPDATE orders SET status = ? WHERE id = ?`, [status, req.params.id], function(err) {
     if (err) return res.status(500).json({ error: err.message });
-    if (this.changes === 0) return res.status(404).json({ error: 'Заказ не найден' });
-    res.json({ message: 'Заказ удалён' });
+    if (this.changes === 0) return res.status(404).json({ error: 'Не найден' });
+    res.json({ success: true });
   });
 });
 
@@ -136,12 +110,10 @@ app.post('/api/reservations', (req, res) => {
 app.delete('/api/reservations/:id', (req, res) => {
   db.run(`DELETE FROM reservations WHERE id = ?`, [req.params.id], function(err) {
     if (err) return res.status(500).json({ error: err.message });
-    if (this.changes === 0) return res.status(404).json({ error: 'Бронирование не найдено' });
-    res.json({ message: 'Бронирование удалено' });
+    res.json({ success: true });
   });
 });
 
-// Запуск
 app.listen(PORT, () => {
-  console.log(`Сервер запущен: http://localhost:${PORT}`);
+  console.log(`Server listening on http://localhost:${PORT}`);
 });
